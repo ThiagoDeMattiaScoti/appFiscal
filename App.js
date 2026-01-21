@@ -103,23 +103,38 @@ export default function App() {
 
   const handleActivateMonitoring = async () => {
     try {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') {
+        const { status: newStatus } = await Notifications.requestPermissionsAsync();
+        if (newStatus !== 'granted') {
+          Alert.alert("Erro", "Permissão para notificações não concedida.");
+          return;
+        }
+      }
+
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       for (const rule of rules) {
         for (const day of rule.days) {
           for (const hour of rule.hours) {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: "PJ Manager Scoti",
-                body: rule.message,
-              },
-              trigger: {
-                day: day,
-                hour: hour,
-                minute: 0,
-                repeats: true,
-              },
-            });
+            try {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: "PJ Manager Scoti",
+                  body: rule.message,
+                },
+                trigger: {
+                  channelId: 'default',
+                  day: day,
+                  hour: hour,
+                  minute: 0,
+                  repeats: true,
+                },
+              });
+            } catch (innerError) {
+              console.error(`Falha ao agendar para dia ${day} hora ${hour}:`, innerError);
+              throw new Error(`Falha ao agendar regra (Dia: ${day}, Hora: ${hour}): ${innerError.message}`);
+            }
           }
         }
       }
@@ -129,7 +144,7 @@ export default function App() {
       Alert.alert("Sucesso", "Monitoramento ativado com as regras atuais!");
     } catch (error) {
       console.error(error);
-      Alert.alert("Erro", "Falha ao ativar monitoramento");
+      Alert.alert("Erro", `Falha ao ativar monitoramento: ${error.message}`);
     }
   };
 
