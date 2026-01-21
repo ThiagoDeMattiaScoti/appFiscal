@@ -79,7 +79,6 @@ export default function App() {
   };
 
   async function registerForPushNotificationsAsync() {
-    let token;
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
         name: 'default',
@@ -103,6 +102,16 @@ export default function App() {
 
   const handleActivateMonitoring = async () => {
     try {
+      // Ensure channel exists on Android before scheduling
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      }
+
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') {
         const { status: newStatus } = await Notifications.requestPermissionsAsync();
@@ -125,6 +134,7 @@ export default function App() {
                 },
                 trigger: {
                   channelId: 'default',
+                  type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
                   day: day,
                   hour: hour,
                   minute: 0,
