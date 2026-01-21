@@ -134,11 +134,10 @@ export default function App() {
                 },
                 trigger: {
                   channelId: 'default',
-                  type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+                  type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
                   day: day,
                   hour: hour,
                   minute: 0,
-                  repeats: true,
                 },
               });
             } catch (innerError) {
